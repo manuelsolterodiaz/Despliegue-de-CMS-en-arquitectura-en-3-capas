@@ -7,7 +7,7 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 - Capa 3: Capa privada. Servidor de BBDD.
 ## Índice
 
-1. Definición de AWS
+1. Definición de AWS (#id1)
 2. Servicios utilizados
 3. VPC
 4. Subredes
@@ -16,11 +16,11 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 7. IGW, NAT y Dirección elástica
 8. Dominio
 9. Instancias
-10. Scripts
+10. Scripts (#id10)
 
 
 
-### ¿Qué es AWS?
+### ¿Qué es AWS? <a name="id1"></a>
 AWS es una plataforma integral de servicios en la nube que ofrece cómputo, almacenamiento, bases de datos y otras herramientas para construir y ejecutar aplicaciones sin necesidad de invertir en infraestructura física
 
 ### Servicios utilizados
@@ -102,7 +102,7 @@ Una instancia en AWS es un servidor virtual (una máquina virtual) en la nube qu
 - En cada una se le asigna el la VPC, Subred, grupo de seguridad que se has creado anteriormente.
 
 
-### Scripts
+### Scripts <a name="id10"></a>
 
 El orden de ejecutar los scripts es:
   1. DB
