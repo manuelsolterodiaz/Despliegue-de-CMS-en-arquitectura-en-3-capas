@@ -7,7 +7,7 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 - Capa 3: Capa privada. Servidor de BBDD.
 ## Índice
 
-1. Definición de AWS (#id1)
+1. [Definición de AWS](#id)
 2. Servicios utilizados
 3. VPC
 4. Subredes
