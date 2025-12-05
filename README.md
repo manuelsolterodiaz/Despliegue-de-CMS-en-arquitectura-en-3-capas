@@ -7,15 +7,15 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 - Capa 3: Capa privada. Servidor de BBDD.
 ## Índice
 
-1. [Definición de AWS](#id)
-2. Servicios utilizados
-3. VPC
-4. Subredes
-5. Grupos de Seguridad
-6. Tablas de enrutamiento
-7. IGW, NAT y Dirección elástica
-8. Dominio
-9. Instancias
+1. [Definición de AWS](#id1)
+2. [Servicios utilizados](#id2)
+3. [VPC](#id3)
+4. [Subredes](#id4)
+5. [Grupos de Seguridad](#id5)
+6. [Tablas de enrutamiento](#id6)
+7. [IGW, NAT y Dirección elástica](#id7)
+8. [Dominio](#id8)
+9. [Instancias](#id9)
 10. [Scripts](#id10)
 
 
@@ -23,17 +23,17 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 ### ¿Qué es AWS? <a name="id1"></a>
 AWS es una plataforma integral de servicios en la nube que ofrece cómputo, almacenamiento, bases de datos y otras herramientas para construir y ejecutar aplicaciones sin necesidad de invertir en infraestructura física
 
-### Servicios utilizados
+### Servicios utilizados<a name="id2"></a>
 En esta práctica se ha utilizado el Servicio:
 - VPC (Red, Subredes, Grupos de Seguridad, ACL, tablas de enrutamiento, Puertas de enlace de internet, IP elástica y Gateway NAT).
 - EC2 (Para las instancias)
 
-### VPC
+### VPC<a name="id3"></a>
 En AWS es tu red virtual privada y aislada dentro de la nube de AWS.
 La VPC tiene asignada la Red 10.0.0.0/16
 ![Imagen de VPC](Imagenes/VPC.png)
 
-### Subredes
+### Subredes<a name="id4"></a>
 Es un rango de direcciones IP dentro de tu VPC (Virtual Private Cloud) que se utiliza para lanzar recursos como instancias EC2, bases de datos, etc., y que reside dentro de una sola zona de disponibilidad.
 Para esta practica se han creado 3 subredes:
 - Subred pública para el Balanceador: 10.0.2.0/24
@@ -41,7 +41,7 @@ Para esta practica se han creado 3 subredes:
 - Subred privada para el servidor de Base de Datos: 10.0.4.0/24
 ![Imagen de Subredes](Imagenes/Subredes.png)
 
-### Grupos de Seguridad
+### Grupos de Seguridad<a name="id5"></a>
 Un grupo de seguridad en AWS es un firewall virtual que controla el tráfico de red entrante y saliente de tus recursos.
 En todas las reglas de entrada se le asigna SSH para poder conectarse remotamente a las instancias
 ![Grupos de seguridad](Imagenes/Grupos de seguridad.png)
@@ -58,7 +58,7 @@ En todas las reglas de entrada se le asigna SSH para poder conectarse remotament
   Aqui se detallan las reglas de entrada / salida que se van a permitir o denegar, en este caso en reglas de salida se queda por defecto.
 ![Imagen de Grupo de seguridad base de datos](Imagenes/gs-bbdd.png)
 
-### Tablas de enrutamiento
+### Tablas de enrutamiento<a name="id6"></a>
 Dictan a dónde se envían los paquetes de red desde tus subredes, permitiendo la comunicación entre ellas, hacia Internet, o a redes remotas, usando destinos como puertas de enlace (IGW, VGW) o interfaces de red
 Hay 3 tablas de enrutamiento, una para cada subred.
 ![Imagen de Tablas de enrutamiento](Imagenes/tablas.png)
@@ -72,7 +72,7 @@ Hay 3 tablas de enrutamiento, una para cada subred.
   Se le asigna una gateway NAT para que las instancias tengan acceso a internet, despues de instalar todo se le quitan para que esten mas seguros
 ![Imagen de Tabla de enrutamiento privada base de datos](Imagenes/tabla-privada-BBDD.png)
 
-### IGW, NAT y Dirección elástica
+### IGW, NAT y Dirección elástica<a name="id7"></a>
 #### IGW
 Es un componente de tu Virtual Private Cloud (VPC) que permite la comunicación bidireccional entre tus recursos (como instancias EC2) en subredes públicas y el internet, y se asocia a la VPC creada anteriormente.
 ![Imagen de IGW](Imagenes/igw.png)
@@ -83,11 +83,11 @@ Son servicios administrados que permiten a las instancias en subredes privadas d
 Las direcciones IP elásticas son direcciones IPv4 estáticas diseñadas para la informática en la nube dinámica.
 En este caso se le asigna a la instancia del balanceador.
 ![Imagen de NAT](Imagenes/elastica.png)
-#### Dominio
+#### Dominio<a name="id8"></a>
 Se crea un dominio, en este caso en NO-IP y le asignamos la ip elastica que nos ha dado AWS
 ![Imagen de NAT](Imagenes/dominio.png)
 
-### Instancias
+### Instancias<a name="id9"></a>
 Una instancia en AWS es un servidor virtual (una máquina virtual) en la nube que proporciona recursos informáticos como CPU, memoria, almacenamiento y red bajo demanda.
 
 - Instancias creadas:
