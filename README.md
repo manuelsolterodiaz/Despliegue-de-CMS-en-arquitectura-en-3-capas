@@ -16,7 +16,7 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 7. IGW, NAT y Dirección elástica
 8. Dominio
 9. Instancias
-10. Scripts (#id10)
+10. [Scripts](#id10)
 
 
 
