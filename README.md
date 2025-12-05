@@ -104,7 +104,189 @@ Una instancia en AWS es un servidor virtual (una máquina virtual) en la nube qu
 
 ### Scripts
 
+El orden de ejecutar los scripts es:
+  1. DB
+  2. Balanceador
+  3. NFS
+  4. WEBS
+
 ###### Balanceador
+```bash
+#!/bin/bash
+
+
+# Cambiar nombre de la máquina
+sudo hostnamectl set-hostname BalanceadorManuelSoltero
+
+# Instalar Apache y modulos para balancear
+sudo apt update
+sudo apt install -y apache2 certbot python3-certbot-apache
+sudo a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests proxy_connect ssl headers
+
+# Reiniciar Apache
+sudo systemctl restart apache2
+
+# Crear VirtualHost HTTP → HTTPS
+sudo tee /etc/apache2/sites-available/load-balancer.conf > /dev/null <<EOF
+<VirtualHost *:80>
+    ServerName msolterod02.hopto.org
+    ServerAdmin webmaster@localhost
+
+    # Redirección permanente HTTP → HTTPS
+    Redirect permanent / https://msolterod02.hopto.org
+
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
+
+# Crear el fichero del balanceador con las ip de los webs
+sudo tee /etc/apache2/sites-available/load-balancer-ssl.conf > /dev/null <<EOF
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerAdmin webmaster@localhost
+    ServerName msolterod02.hopto.org
+
+    SSLEngine On
+    SSLCertificateFile /etc/letsencrypt/live/msolterod02.hopto.org/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/msolterod02.hopto.org/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+
+    <Proxy "balancer://mycluster">
+        ProxySet lbmethod=byrequests
+
+        # Servidor Web 1
+        BalancerMember http://10.0.3.79:80
+
+        # Servidor Web 2
+        BalancerMember http://10.0.3.145:80
+    </Proxy>
+
+    ProxyPass "/" "balancer://mycluster/"
+    ProxyPassReverse "/" "balancer://mycluster/"
+
+    ErrorLog \${APACHE_LOG_DIR}/ssl_error.log
+    CustomLog \${APACHE_LOG_DIR}/ssl_access.log combined
+</VirtualHost>
+</IfModule>
+EOF
+
+# Deshabilitar sitio por defecto y habilitar el sitio del balanceador
+sudo a2dissite 000-default.conf || true
+sudo a2ensite load-balancer.conf
+sudo a2ensite load-balancer-ssl.conf
+
+# Reiniciar Apache
+sudo systemctl restart apache2
+
+# --- CREAR CERTIFICADO SSL ---
+# Solicitar certificado automático con Certbot
+sudo certbot --apache -d msolterod02.hopto.org --non-interactive --agree-tos -m manuelsolterodiaz2006@gmail.com
+
+# Validar configuración
+apache2ctl configtest
+sudo systemctl status apache2 --no-pager
+```
 ###### Webs
+```bash
+#!/bin/bash
+# Cambiar nombre de la máquina
+sudo hostnamectl set-hostname WEB2ManuelSoltero
+
+#Instalamos el nfs-common y modulos de php para que puedan leer el wordpress
+sudo apt update
+sudo apt install nfs-common apache2 php libapache2-mod-php php-mysql php-curl php-gd php-xml php-mbstring php-xmlrpc php-zip php-soap php-intl -y
+
+#Creamos la carpeta de montaje
+sudo mkdir -p /nfs/general
+
+#Montamos la carpeta 
+sudo mount 10.0.3.100:/var/nfs/general /nfs/general
+echo "10.0.3.100:/var/nfs/general  /nfs/general  nfs _netdev,auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0" | sudo tee -a /etc/fstab
+sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/wordpress.conf
+
+# Configuracion para servir el contenido desde NFS
+sudo tee /etc/apache2/sites-available/wordpress.conf > /dev/null <<EOF
+<VirtualHost *:80>
+    ServerName msolterod02.hopto.org
+    ServerAdmin webmaster@localhost
+    DocumentRoot /nfs/general/wordpress/
+    
+    <Directory /nfs/general/wordpress>
+        Options +FollowSymlinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
+
+#Deshabilitamos el que esta por defecto y reiniciamos el apache
+sudo a2dissite 000-default.conf
+sudo /usr/sbin/a2ensite wordpress.conf
+sudo systemctl reload apache2
+```
 ###### NFS
+```bash
+#!/bin/bash
+# Cambiar nombre de la máquina
+sudo hostnamectl set-hostname NFSManuelSoltero
+
+#Instalamos el servidor NFS
+sudo apt update
+sudo apt install nfs-kernel-server -y
+
+#Creamos la carpeta que se va a compartir y van a poder acceder los servidores webs
+sudo mkdir -p /var/nfs/general
+sudo chown nobody:nogroup /var/nfs/general
+
+#Añadimos a los servidores web 
+echo "/var/nfs/general 10.0.3.79(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+echo "/var/nfs/general 10.0.3.145(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+
+#Descargamos wordpress y los descomprimimos en la carpeta creada anteriormente
+sudo apt install unzip -y
+sudo wget -O /var/nfs/general/latest.zip https://wordpress.org/latest.zip
+sudo unzip /var/nfs/general/latest.zip -d /var/nfs/general/
+
+#Asignamos los permisos y el usuario y reiniciamos el servicio 
+sudo chown -R www-data:www-data /var/nfs/general/wordpress
+sudo find /var/nfs/general/wordpress/ -type d -exec chmod 755 {} \;
+sudo find /var/nfs/general/wordpress/ -type f -exec chmod 644 {} \;
+sudo systemctl restart nfs-kernel-server
+sudo exportfs -a
+```
 ###### Base de Datos
+```bash
+#!/bin/bash
+
+
+# Cambiar nombre de la máquina
+sudo hostnamectl set-hostname DBManuelsoltero
+
+# Instalar MariaDB-Server
+sudo apt update
+sudo apt install mariadb-server -y
+
+# Crear Base de datos y usuario
+sudo mysql <<EOF
+CREATE DATABASE IF NOT EXISTS wordpressMSD DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'manuelsoltero'@'10.0.3.79' IDENTIFIED BY 'abcd';
+GRANT ALL PRIVILEGES ON wordpressMSD.* TO 'manuelsoltero'@'10.0.3.79';
+
+CREATE USER IF NOT EXISTS 'manuelsoltero'@'10.0.3.145' IDENTIFIED BY 'abcd';
+GRANT ALL PRIVILEGES ON wordpressMSD.* TO 'manuelsoltero'@'10.0.3.145';
+
+FLUSH PRIVILEGES;
+EOF
+
+# Configurar bind-address en MariaDB
+sudo sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# Reiniciar MariaDB y ver el estado para comprobar que todo esta correcto
+sudo systemctl restart mariadb
+sudo systemctl status mariadb --no-pager
+```
