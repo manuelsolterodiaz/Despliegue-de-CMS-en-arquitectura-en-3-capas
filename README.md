@@ -106,9 +106,9 @@ Una instancia en AWS es un servidor virtual (una máquina virtual) en la nube qu
 
 El orden de ejecutar los scripts es:
   1. DB
-  2. Balanceador
-  3. NFS
-  4. WEBS
+  2. NFS
+  3. WEBS
+  4. Balanceador
 
 ###### Balanceador
 ```bash
