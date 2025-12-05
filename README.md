@@ -14,8 +14,9 @@ En este proyecto verás como configurar un CMS como es Wordpress en 3 capas en A
 5. Grupos de Seguridad
 6. Tablas de enrutamiento
 7. IGW, NAT y Dirección elástica
-8. Instancias
-9. Scripts
+8. Dominio
+9. Instancias
+10. Scripts
 
 
 
@@ -73,3 +74,37 @@ Hay 3 tablas de enrutamiento, una para cada subred.
 
 ### IGW, NAT y Dirección elástica
 #### IGW
+Es un componente de tu Virtual Private Cloud (VPC) que permite la comunicación bidireccional entre tus recursos (como instancias EC2) en subredes públicas y el internet, y se asocia a la VPC creada anteriormente.
+![Imagen de IGW](Imagenes/igw.png)
+#### NAT
+Son servicios administrados que permiten a las instancias en subredes privadas de tu VPC conectarse a Internet (para actualizaciones, llamadas a APIs)
+![Imagen de NAT](Imagenes/igw.png)
+#### Direcion Elástica
+Las direcciones IP elásticas son direcciones IPv4 estáticas diseñadas para la informática en la nube dinámica.
+En este caso se le asigna a la instancia del balanceador.
+![Imagen de NAT](Imagenes/elastica.png)
+#### Dominio
+Se crea un dominio, en este caso en NO-IP y le asignamos la ip elastica que nos ha dado AWS
+![Imagen de NAT](Imagenes/dominio.png)
+
+### Instancias
+Una instancia en AWS es un servidor virtual (una máquina virtual) en la nube que proporciona recursos informáticos como CPU, memoria, almacenamiento y red bajo demanda.
+
+- Instancias creadas:
+![Imagen de Instancias](Imagenes/instancias.png)
+
+- Para esta práctica se han de crear 5 instancias:
+  - Balanceador
+  - Web1
+  - Web2
+  - NFS
+  - Base de Datos
+- En cada una se le asigna el la VPC, Subred, grupo de seguridad que se has creado anteriormente.
+
+
+### Scripts
+
+###### Balanceador
+###### Webs
+###### NFS
+###### Base de Datos
